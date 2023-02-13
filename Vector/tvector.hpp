@@ -1,8 +1,8 @@
 template<class T>
 TVector<T>::TVector(){
    size = 0;
-   capacity = SPARECAPACITY + 200;
-   array = new T[capacity];                     //default cosnt
+   capacity = SPARECAPACITY;
+   array = new T[capacity];                     //default const
 }
 
 template<class T>
@@ -26,7 +26,7 @@ template<class T>
 TVector<T>::TVector(const TVector<T>& v){
    array = new T(v.capacity);
    for(int i = 0; i < v.size; i ++){                   //copy const
-      array[i] = v[i];
+      array[i] = v.array[i];
    }
    capacity = v.capacity;
    size = v.size;
@@ -96,28 +96,33 @@ void TVector<T>::Print(std::ostream& os, char delim) const             // print 
     return;
 }
 
-
-
-///////////////////MIGHT NEED TWEAKING 
+///////////////////MIGHT NEED TWEAKING
 
 template<typename T>
 void TVector<T>::SetCapacity(unsigned int c){
+
    if(size > c) size = c;
 
    T* temp = new T[c];
-   for(int i = 0; i < size; i++){                     //creates new array with desired capacity ( deep copy)
+   for(int i = size - 1; i >= 0; i--){                     //creates new array with desired capacity ( deep copy)
       temp[i] = array[i];
    }
+   delete [] array;
    array = temp;
-   delete [] temp;
+
 }
 
+template<typename T>
+void TVector<T>::Clear(){
+    delete [] array;
+    size = 0;
+}
 
 template<typename T>
 void TVector<T>::InsertBack(const T& d){
     if(size == capacity){
       SetCapacity(size + 10);
-   //   std::cout<< "SETCAPACITY HAS BEEN CALLED";      //inserts to last spot, if full setcapacity is called
+     //inserts to last spot, if full setcapacity is called
     }
     array[size] = d;
     size++;
@@ -132,17 +137,14 @@ void TVector<T>::RemoveBack(){
 template<typename T>
 TVectorIterator<T> TVector<T>::Insert(TVectorIterator<T> pos, const T& d){
 
-//    std::cout << "tHIS FUNCTION IS called and inserts" << d << std::endl;
     if(size == capacity){
-       SetCapacity(capacity + 2);
+       SetCapacity(capacity * 2);
     }
 
-  //  std::cout << "size check " << size << std::endl ;
     int i = size;
 
     for(i = size; i != pos.index; i--){
        array[i] = array[i-1];
-  //     std::cout << "index check " << i << std::endl ;
     }
 
     array[i] = d;
@@ -171,8 +173,9 @@ TVectorIterator<T> TVector<T>::Remove(TVectorIterator<T> pos){
 
 template<typename T>
 TVectorIterator<T> TVector<T>::Remove(TVectorIterator<T> pos1, TVectorIterator<T> pos2){
-    if(IsEmpty()) return pos1;
-    if(pos1.index == pos2.index || pos1.index - pos2.index == -1 ||   //error checking for remove
+  if(IsEmpty()) return pos1;
+
+  if(pos1.index == pos2.index || pos1.index - pos2.index == -1 ||   //error checking for remove
     pos1.index - pos2.index == 1) return pos1;
 
     int removecount;
@@ -192,10 +195,8 @@ TVectorIterator<T> TVector<T>::Remove(TVectorIterator<T> pos1, TVectorIterator<T
     i++;                                                           //copies array to itself stopping at pos 1,
                                                                    //and contintuing at the end of pos2
 
- //   std::cout << "rc test : " << removecount << std::endl;
     for(int j = pos2.index; j < (size); j++){
         array [i+1] = array [j];
-//        std::cout << " j " << j << ": " << array [j] << std::endl;
         i++;
     }
 
@@ -228,7 +229,6 @@ TVectorIterator<T> TVector<T>::GetIteratorEnd() const{
     return newit;
 }
 
-/////////////////////////ITERATOR FUNCTIONS
 template<typename T>
 TVectorIterator<T>::TVectorIterator(){
    index = 0;
@@ -252,7 +252,6 @@ TVectorIterator<T> TVectorIterator<T>::Next(){
       index = index + 1;
       *ptr++;                                             //increments iterators index and pointer
    }
-//   std::cout << index << std::endl;
    return *this;
 }
 template<typename T>
@@ -275,20 +274,19 @@ T& TVectorIterator<T>::GetData() const{
 
 template<typename T>
 TVector<T> operator+(const TVector<T>& t1, const TVector<T>& t2){
-    TVectorIterator<T> v1 = t1.GetIteratorEnd();
-    TVectorIterator<T> v2 = t2.GetIteratorEnd();
+    if(t1.IsEmpty()) return t1;                                                  //error handling
+    if(t2.IsEmpty()) return t2;
+
+    int tsize = t1.GetSize() + t2.GetSize();                                         //total capacity
+
+    TVectorIterator<T> v1 = t2.GetIteratorEnd();
+    TVectorIterator<T> v2 = t1.GetIteratorEnd();
     TVector<T> t3;
+
     TVectorIterator<T> v3 = t3.GetIterator();
     int i = 0;
     int j = 0;
 
-    while(v2.HasPrevious()){
-       t3.Insert(v3, v2.GetData());
-       v2.Previous();
-       v3.Next();                                   //creates an iterator for each vector and iterates through them
-                                                    //backwards adding each element to a combined array
-       i++;
-    }
 
     while(v1.HasPrevious()){
        t3.Insert(v3, v1.GetData());
@@ -296,8 +294,31 @@ TVector<T> operator+(const TVector<T>& t1, const TVector<T>& t2){
        v3.Next();
        j++;
     }
+
+    while(v2.HasPrevious()){
+       t3.Insert(v3, v2.GetData());
+       v2.Previous();
+       v3.Next();
+       i++;
+    }
+
+                                                     //creates an iterator for each vector and iterates through the
+                                                     //backwards adding each element to a combined array
     return t3;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
