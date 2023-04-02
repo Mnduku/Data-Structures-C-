@@ -1,5 +1,0 @@
-makeEmpty(BinaryNode* & t)
-
-The complexity of this function in my BET is of O(n) because we need to traverse through
-every node in the tree, check if they have children, and then check their children in order to 
-obtain total deletion.
