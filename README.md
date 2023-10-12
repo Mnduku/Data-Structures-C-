@@ -1,2 +1,2 @@
 # Data-Structures2-Cpp
-A collection of more advanced c++ programs
+A collection of more advanced c++ programs I completed in college
